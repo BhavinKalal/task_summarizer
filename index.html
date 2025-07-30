@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Summarizer + Tagger</title>
+    <style>
+        /* Basic Reset & Body Styling */
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif; /* Simple, common font */
+            background-color: #1a1a1a; /* Dark background */
+            color: #e0e0e0; /* Light text */
+            line-height: 1.6;
+        }
+
+        /* Container for overall layout */
+        .container {
+            max-width: 800px;
+            margin: 20px auto; /* Center the container */
+            background-color: #242424; /* Slightly lighter dark for the main content area */
+            padding: 30px;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+        }
+
+        /* Headings */
+        h1, h2 {
+            text-align: center;
+            color: #ffffff; /* White headings */
+            margin-bottom: 25px;
+        }
+        h1 {
+            font-size: 2.5em; /* Larger for main title */
+        }
+        h2 {
+            font-size: 2em;
+            margin-top: 30px;
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #cccccc; /* Lighter gray for labels */
+        }
+
+        textarea {
+            width: calc(100% - 20px); /* Full width minus padding */
+            padding: 10px;
+            border: 1px solid #555; /* Darker border */
+            border-radius: 5px;
+            background-color: #333; /* Darker input field */
+            color: #e0e0e0; /* Light text in input */
+            font-size: 1em;
+            margin-bottom: 20px;
+            resize: vertical; /* Allow vertical resizing */
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #00e676; /* Neon green focus highlight */
+            box-shadow: 0 0 8px rgba(0, 230, 118, 0.5); /* Glowing effect on focus */
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #00e676; /* Neon green button */
+            color: #1a1a1a; /* Dark text on button */
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 5px #00e676, 0 0 10px #00e676; /* Initial neon glow */
+        }
+        button:hover {
+            background-color: #00c853;
+            box-shadow: 0 0 10px #00e676, 0 0 20px #00e676, 0 0 30px #00e676; /* Enhanced glow on hover */
+        }
+
+        /* Task Cards */
+        .tasks-list {
+            margin-top: 30px; /* Space above processed tasks */
+        }
+        .task-card {
+            background-color: #2a2a2a; /* Card background */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px; /* Space between cards */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .task-card:last-child {
+            margin-bottom: 0; /* No margin after the last card */
+        }
+
+        .task-card p {
+            font-size: 0.9em;
+            color: #aaaaaa; /* Lighter gray for original task */
+            margin-bottom: 8px;
+        }
+        .task-card h3 {
+            font-size: 1.4em;
+            color: #ffffff; /* White for summary */
+            margin-bottom: 10px;
+            text-align: left; /* Align summary to left */
+        }
+
+        /* Tags */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; /* Space between tags */
+            margin-bottom: 12px;
+        }
+        .tag {
+            background-color: #007bff; /* A standard blue for tags */
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px; /* Pill shape */
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        /* Priority Badges */
+        .priority-display {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #cccccc;
+        }
+        .priority-badge {
+            padding: 5px 10px;
+            border-radius: 15px; /* Rounded badge */
+            color: #ffffff; /* White text on badge */
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* Priority Colors */
+        .priority-5 { background-color: #dc2626; }
+        .priority-4 { background-color: #ea580c; }
+        .priority-3 { background-color: #eab308; }
+        .priority-2 { background-color: #22c55e; }
+        .priority-1 { background-color: #3b82f6; }
+
+        /* New style for CSV button */
+        .btn-csv {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px; /* Space above button */
+            display: block; /* Make it take full width */
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+        .btn-csv:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Task Summarizer + Tagger</h1>
+
+        <!-- The form will submit to the root path '/' -->
+        <form method="POST" action="/">
+            <label for="tasks_input">
+                Paste your messy tasks here (one task per line):
+            </label>
+            <textarea id="tasks_input" name="tasks_input" rows="10"
+                      placeholder="e.g., Client needs urgent response about the website's new login bug affecting premium users. It's stopping conversions. ETA ASAP!
+Schedule a meeting with the design team to review the new dashboard mockups. Need to get feedback before Monday's client demo."></textarea>
+            <button type="submit">
+                Process Tasks
+            </button>
+        </form>
+
+        <!-- Dynamic content will be inserted here by the Python server -->
+        <div id="processed-results"></div>
+
+        <!-- NEW: CSV Download Form -->
+        <!-- This form will be submitted to a different path to trigger CSV download -->
+        <form method="GET" action="/download_csv" id="csv-download-form" style="display: none;">
+            <button type="submit" class="btn-csv">Download as CSV</button>
+        </form>
+
+    </div>
+
+    <script>
+        // This script makes the CSV button visible only when there are results.
+        // It's very simple and just checks for the presence of content.
+        window.onload = function() {
+            const processedResultsDiv = document.getElementById('processed-results');
+            const csvDownloadForm = document.getElementById('csv-download-form');
+            
+            // Check if the processed-results div has any children (meaning content was injected)
+            // or if its innerHTML is not empty after the server response.
+            if (processedResultsDiv.innerHTML.trim() !== '') {
+                csvDownloadForm.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>
